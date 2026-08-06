@@ -1,40 +1,20 @@
-# Goa Fair Price Shop (FPS) Scraper & ETL Pipeline
+# Goa FPS Data Pipeline
 
-Anyone who has worked with legacy or government web portals knows the pain: dynamic AJAX calls that silently fail, memory leaks during long-running headless browser sessions, unpredictable internet drops, and DOM elements that look updated but still contain stale data from previous calls.
+Scrapes monthly Fair Price Shop (ration shop) transaction data for Goa off the government's IMPDS portal, and turns the mess of nested JSON it produces into one clean CSV you can actually open in Excel and work with.
 
-This project is a resilient, fault-tolerant web scraping and ETL pipeline designed to scrape monthly Fair Price Shop (FPS) transaction data across Goa's districts from the Indian IMPDS portal (`impds.nic.in`).
+If you've ever tried to scrape a government portal, you already know why this needed to exist. If you haven't — count yourself lucky, and read on anyway, because most of what's below is the story of things going wrong and how the script learned to deal with it.
 
-Instead of relying on standard Selenium scripts that break down after an hour, this pipeline is engineered with automatic recovery, session recycling, stale DOM protection, and a decoupled two-stage data architecture.
+## Why this isn't just a basic Selenium script
 
----
+The first version of this was, in fact, a basic Selenium script. It worked fine for about forty shops and then started quietly writing the wrong data into the wrong files. Here's what forced the redesign:
 
-## Key Engineering Challenges & Solutions
+**The page lies about being updated.** You click a Fair Price Shop link, the JS fires, and the DOM *looks* like it refreshed — but on a slow connection the AJAX call hasn't actually landed yet. If you scrape at that exact moment, you get shop #47's numbers saved under shop #48's filename, and there is no error, no warning, nothing. It just silently corrupts your dataset. The fix here is that after every click, the script pulls the FPS ID that's actually rendered on the page and compares it against the ID it meant to click. Any mismatch raises a `Stale DOM` exception on the spot, before a single byte gets written to disk.
 
-### 1. Stale DOM Detection (Preventing Silent Data Corruption)
-* **The Problem:** When cycling through FPS shop links via JavaScript calls, slow networks or missed AJAX triggers often cause the webpage UI to retain the previous shop's data—even while claiming the click succeeded. Writing data at this stage results in duplicate records saved under wrong shop IDs.
-* **The Solution:** Before parsing, the scraper extracts the live shop ID on the rendered DOM and compares it with the target ID. If `extracted_fps_id != target_fps_id`, a `Stale DOM Exception` is raised immediately to reject the bad payload.
+**Headless Chrome degrades over long runs.** A few hundred shop clicks in a row and the browser starts leaking memory and getting sluggish, and the portal itself doesn't love long-lived sessions either. So there's a rolling 15-minute timer — every 900 seconds, the driver quits, a fresh one boots up, and it re-navigates back to wherever it was in the district. The scrape doesn't notice this happened; it just keeps going.
 
-### 2. Scheduled 15-Minute Chrome Session Recycling
-* **The Problem:** Running hundreds of headless Chrome interactions causes memory leaks and severe browser slowdowns. On top of that, public web servers tend to throttle or drop long-lived active sessions.
-* **The Solution:** A rolling timer monitors the active session age. Every 15 minutes, the script cleanly quits the Chrome instance, clears background memory, launches a fresh browser, and re-navigates back to the active district.
+**Networks drop, and government servers time out for no reason.** There's a two-tier retry system for this. First tier: retry the same shop up to three times with `WebDriverWait` handling the slow loads. If that still fails, tier two kicks in — full teardown of the Chrome instance, a new session, re-navigate to the district, and pick back up where it left off.
 
-### 3. Tiered Auto-Recovery & Retry Logic
-* **The Problem:** Network drops or unexpected server timeout errors can disrupt long batch scraping processes.
-* **The Solution:** The scraper employs a two-tier retry strategy:
-  * **Level 1 (Soft Retries):** Retries loading an individual shop up to 3 times with dynamic standard waits (`WebDriverWait`).
-  * **Level 2 (Hard Reset):** If a shop fails after 3 attempts, the script teardowns the Chrome instance completely, boots up a fresh session, re-navigates back to the current district zone, and resumes operation seamlessly.
-
-### 4. Idempotency & Seamless Job Resumption
-* **The Problem:** Network failures or manual stops during a multi-hour scrape usually mean starting all over again.
-* **The Solution:** Every target file path (`data/raw/.../FPS_ID_name.json`) is calculated deterministically prior to extraction. The scraper checks `os.path.exists(target_file)` and instantly skips already downloaded shops. If a crash occurs, re-running the script resumes exactly where it left off without duplicate network calls.
-
-### 5. Decoupled Two-Stage Architecture (JSON Storage -> CSV ETL)
-* **The Problem:** Scraping directly into a single flat CSV file mid-run leads to corrupted rows if the script crashes, and makes parsing nested tables (e.g., summary cards, PHH vs. AAY transaction matrices, commodity weight totals) extremely messy.
-* **The Solution:** 1. **Scraping Stage (`get_raw_data.py`):** Dumps individual raw, deeply nested shop payloads into modular `.json` files.
-  2. **ETL Stage (`consolidate_data.py`):** Reads raw JSON files, flattens hierarchical nested structures into standardized tabular columns, and outputs a consolidated CSV (`consolidated_fps_data.csv`).
-
----
-
+**Nobody wants to re-scrape four thousand shops because the script crashed at shop 3,999.** Every file's path is worked out *before* anything gets clicked (`data/raw/2026-03/north_goa/158500100001_shopname.json`), and if that file already exists, the shop is skipped entirely. So the script is safe to just re-run after any crash, power cut, or "oops closed my laptop" moment — it picks up exactly where it stopped, no duplicate requests, no wasted time.
 
 ## Why two scripts instead of one
 
@@ -131,18 +111,6 @@ goa_zones = ['NORTH GOA', 'SOUTH GOA']
 
 Change those to pull different months or add more zones later.
 
-## A couple of things worth knowing before you run it
-
-The months and zones being scraped are set right at the top of `get_raw_data.py`:
-
-```python
-years = [2026]
-months = [3, 4]
-goa_zones = ['NORTH GOA', 'SOUTH GOA']
-```
-
-Change those to pull different months or add more zones later.
-
 ## Before you run this: the honest flaws section
 
 Every scraper has rough edges. Here are ours, laid out properly instead of buried in a comment somewhere.
@@ -214,3 +182,47 @@ A few more things I noticed while going through both scripts, none dealbreakers,
 - Python 3.9+
 - Chrome + a matching ChromeDriver on your PATH
 - `selenium`, `beautifulsoup4`, `pandas`
+## Pipeline Architecture
+
+```text
+[ IMPDS Portal ] 
+       │
+       ▼
+[ get_raw_data.py ] ──► (Headless Chrome + Selenium + BeautifulSoup)
+       │                 ├── 15-Min Session Recycling
+       │                 ├── Stale DOM Assertions
+       │                 └── Skip Existing Files
+       ▼
+[ Raw JSON Vault ]  ──► (data/raw/YYYY-MM/district/FPS_ID.json)
+       │
+       ▼
+[ consolidate_data.py ] (Pandas Schema Flattening)
+       │
+       ▼
+[ Final CSV Dataset ] ──► (data/processed/consolidated_fps_data.csv)
+
+---
+
+.
+├── data/
+│   ├── raw/                       # Raw scraper JSON dumps
+│   │   ├── 2026-03/
+│   │   │   ├── north_goa/
+│   │   │   └── south_goa/
+│   │   └── 2026-04/
+│   │       ├── north_goa/
+│   │       └── south_goa/
+│   └── processed/                 # Final tabular data outputs
+│       └── consolidated_fps_data.csv
+├── get_raw_data.py                # Main web scraper & browser controller
+├── consolidate_data.py            # JSON-to-CSV ETL parser
+└── requirements.txt               # Dependencies
+
+git clone [https://github.com/your-username/goa-fps-scraper.git](https://github.com/your-username/goa-fps-scraper.git)
+cd goa-fps-scraper
+
+pip install -r requirements.txt
+
+python get_raw_data.py
+
+python consolidate_data.py

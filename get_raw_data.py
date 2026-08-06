@@ -14,7 +14,7 @@ import json # for saving the data in json format
 
 
 def create_driver():
-    """Setting up the chrome driver with specific options to run in headless mode"""
+    """Setting up the chrome driver with specific options to run in headless mode to optimize time"""
     options = Options()
     # run in headless mode (background) without opening a physical browser window
     options.add_argument("--headless=new")
@@ -174,7 +174,7 @@ for year in years: # loop over year (2026)
                         # execute the javascript action to switch to the target FPS
                         driver.execute_script(action)
 
-                        # Wait up to 10 seconds for span.counter_num4 text to match target_fps_id
+                        # Wait up to 10 seconds for span.counter_num4 text to match target_fps_id to avoid frequent mismatch and reboting the drive
                         WebDriverWait(driver, 10).until(
                             EC.text_to_be_present_in_element(
                                 (By.CSS_SELECTOR, "span.counter_num4"), target_fps_id
