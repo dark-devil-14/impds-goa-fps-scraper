@@ -1,0 +1,125 @@
+{
+  "year": "2026",
+  "month": "March",
+  "state": "GOA",
+  "district": "NORTH GOA",
+  "fps_id": "158500100318",
+  "fps_name": "VITHAL C THALI-4 FPS",
+  "summary_cards": {
+    "total_etransaction": "291",
+    "aadhaar_authenticated": "291",
+    "other_mode_authenticated": "0",
+    "non_authenticated": "0"
+  },
+  "number_of_transactions": [
+    {
+      "row_label": "Priority Household(PHH)",
+      "regular": "267",
+      "intra_state": "5",
+      "inter_state": "7",
+      "total": "279"
+    },
+    {
+      "row_label": "Antyodaya Anna Yojana (AAY)",
+      "regular": "11",
+      "intra_state": "0",
+      "inter_state": "1",
+      "total": "12"
+    }
+  ],
+  "number_of_transacted_ration_cards": [
+    {
+      "row_label": "Priority Household (PHH)",
+      "regular": "267",
+      "intra_state": "5",
+      "inter_state": "7",
+      "total": "279"
+    },
+    {
+      "row_label": "Antyodaya Anna Yojana (AAY)",
+      "regular": "11",
+      "intra_state": "0",
+      "inter_state": "1",
+      "total": "12"
+    }
+  ],
+  "distributed_quantity_kg": [
+    {
+      "row_label": "Wheat",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Fortified Rice",
+      "regular": "5.775",
+      "intra_state": "0.07",
+      "inter_state": "0.185",
+      "total": "6.03"
+    },
+    {
+      "row_label": "Rice",
+      "regular": "5775",
+      "intra_state": "70",
+      "inter_state": "185",
+      "total": "6030.0"
+    },
+    {
+      "row_label": "Coarse Grains",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Barley",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Bajra",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Maize",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Jowar",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Ragi",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Kodo",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Total",
+      "regular": "5775",
+      "intra_state": "70",
+      "inter_state": "185",
+      "total": "6030.0"
+    }
+  ]
+}

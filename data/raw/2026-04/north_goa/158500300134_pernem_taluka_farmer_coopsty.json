@@ -1,0 +1,125 @@
+{
+  "year": "2026",
+  "month": "April",
+  "state": "GOA",
+  "district": "NORTH GOA",
+  "fps_id": "158500300134",
+  "fps_name": "PERNEM TALUKA FARMER CO.OP.STY-26 FPS",
+  "summary_cards": {
+    "total_etransaction": "648",
+    "aadhaar_authenticated": "648",
+    "other_mode_authenticated": "0",
+    "non_authenticated": "0"
+  },
+  "number_of_transactions": [
+    {
+      "row_label": "Priority Household(PHH)",
+      "regular": "543",
+      "intra_state": "17",
+      "inter_state": "4",
+      "total": "564"
+    },
+    {
+      "row_label": "Antyodaya Anna Yojana (AAY)",
+      "regular": "83",
+      "intra_state": "1",
+      "inter_state": "0",
+      "total": "84"
+    }
+  ],
+  "number_of_transacted_ration_cards": [
+    {
+      "row_label": "Priority Household (PHH)",
+      "regular": "543",
+      "intra_state": "17",
+      "inter_state": "4",
+      "total": "564"
+    },
+    {
+      "row_label": "Antyodaya Anna Yojana (AAY)",
+      "regular": "83",
+      "intra_state": "1",
+      "inter_state": "0",
+      "total": "84"
+    }
+  ],
+  "distributed_quantity_kg": [
+    {
+      "row_label": "Wheat",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Fortified Rice",
+      "regular": "12.805",
+      "intra_state": "0.33",
+      "inter_state": "0.09",
+      "total": "13.225"
+    },
+    {
+      "row_label": "Rice",
+      "regular": "12805",
+      "intra_state": "330",
+      "inter_state": "90",
+      "total": "13225.0"
+    },
+    {
+      "row_label": "Coarse Grains",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Barley",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Bajra",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Maize",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Jowar",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Ragi",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Kodo",
+      "regular": "0",
+      "intra_state": "0",
+      "inter_state": "0",
+      "total": "0.0"
+    },
+    {
+      "row_label": "Total",
+      "regular": "12805",
+      "intra_state": "330",
+      "inter_state": "90",
+      "total": "13225.0"
+    }
+  ]
+}
