@@ -186,18 +186,21 @@ To point this at a different state, that line itself needs editing, not just the
 loop_path = ["2026-03//north_goa", "2026-03//south_goa", "2026-04//north_goa", "2026-04//south_goa"]
 ```
 
-This list is hand-typed and only covers exactly four month/zone combinations. If you scrape a new month with `get_raw_data.py` say May - that data lands correctly on disk in `data/raw/2026-05/...`, but `consolidate_data.py` has no idea it exists. It won't error, it won't warn you, it will just build the CSV from the four folders it already knows about and quietly leave May out entirely. The fix is manual: add the new `"YYYY-MM//zone_name"` entry to `loop_path` yourself before re-running the ETL step.
+This file is hand - typed and only covers exactly four month/zone combinations. If you scrape a new month with `get_raw_data.py` say May - that data lands correctly on disk in `data/raw/2026-05/...`, but `consolidate_data.py` has no idea it exists. It won't error, it won't warn you, it will just build the CSV from the four folders it already knows about and quietly leave May out entirely. The fix is manual: add the new `"YYYY-MM//zone_name"` entry to `loop_path` yourself before re-running the ETL step.
 
 ### Smaller things worth knowing about
 
-A few more things I noticed while going through both scripts, none dealbreakers, all worth being aware of:
+A few more things :
 
-- **The two scripts don't agree on path style.** `get_raw_data.py` builds paths with forward slashes (`data/raw/...`), which work everywhere. `consolidate_data.py` uses Windows-style backslashes (`data\\raw`, `data\\processed\\...`). On Windows this is invisible — it just works. On macOS or Linux, backslashes in a path string aren't treated as folder separators, so `consolidate_data.py` will fail to find the folder unless you're running it on Windows or adjust those paths yourself.
-- **There's no log file.** Every status update — successes, retries, stale DOM catches, reboots — goes to the console via `print()` and nowhere else. For a run that might last hours unattended, that means if something worth knowing happened at hour three, you'll only see it if you happened to be watching the terminal at the time, or you redirect output to a file yourself (e.g. `python get_raw_data.py > run_log.txt`).
+- **The log file is the terminal.** Every status update — successes, retries, stale DOM catches, reboots - goes to the console via `print()` and nowhere else. For a run that might last hours unattended, that means if something worth knowing happened at hour three, you'll only see it if you happened to be watching the terminal at the time, or you redirect output to a file yourself (e.g. `python get_raw_data.py > run_log.txt`).
+  
 - **Shop ID and name extraction leans on regex against the sidebar link text.** It assumes the portal always formats entries as something like `"158500100001 : SHOP NAME - extra text"`. If the government ever changes that formatting even slightly, the ID or name extraction can silently produce garbage rather than erroring out, since regex failures here don't currently raise an exception.
-- **No duplicate data ever makes it in twice** — that's a genuine strength worth calling out, not a flaw. Between the stale-DOM check on the scrape side and the file-exists skip on resume, you're structurally protected from the same shop's data landing in your dataset more than once.
-- **ChromeDriver version isn't pinned or auto-managed.** The script assumes a Chrome browser and matching driver are already installed and on your PATH. If Chrome auto-updates itself and your driver falls behind, you'll get a version-mismatch error at `create_driver()` with no built-in recovery for that specific case — it's a manual driver update.
-- Images are blocked in the headless Chrome session on purpose (`profile.managed_default_content_settings.images: 2`) — a real, deliberate speed win across hundreds of shop pages, since all the data we actually need is text and tables anyway.
+  
+- **No duplicate data ever makes it in twice** — that's a genuine strength worth calling out, not a flaw. Between the stale - DOM check on the scrape side and the file-exists skip on resume, i have structurally protected from the same shop's data landing in the dataset more than once.
+  
+- **ChromeDriver version isn't pinned or auto-managed.** The script assumes a Chrome browser and matching driver are already installed and on the PATH. If Chrome auto-updates itself and your driver falls behind, you'll get a version - mismatch error at `create_driver()` with no built-in recovery for that specific case - it's a manual driver update.
+  
+- Images are blocked in the headless Chrome session on purpose (`profile.managed_default_content_settings.images: 2`) — a real, speed win across hundreds of shop pages, since all the data we actually need is text and tables anyway.
 
 ## Requirements
 
