@@ -56,4 +56,4 @@ for path in loop_path:
 consolidated_df = pd.concat(dataframes, ignore_index=True)
 
 # save as csv file 
-consolidated_df.to_csv("data\\processed\\consolidated_fps_data.csv", index=False)
+consolidated_df.to_csv("data/processed/consolidated_fps_data.csv", index=False)
