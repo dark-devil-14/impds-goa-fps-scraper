@@ -33,20 +33,6 @@ Instead of relying on standard Selenium scripts that break down after an hour, t
 * **The Solution:** 1. **Scraping Stage (`get_raw_data.py`):** Dumps individual raw, deeply nested shop payloads into modular `.json` files.
   2. **ETL Stage (`consolidate_data.py`):** Reads raw JSON files, flattens hierarchical nested structures into standardized tabular columns, and outputs a consolidated CSV (`consolidated_fps_data.csv`).
 
----
-
-
-## Why two scripts instead of one
-
-Terrible idea. One crash mid-write and you've got a half-written row corrupting the whole file — and the actual data (summary cards, PHH vs AAY transaction tables, commodity-wise distributed quantities) is deeply nested, which does not want to live in flat rows anyway.
-
-So the pipeline is split in two, deliberately:
-
-1. **`get_raw_data.py`** — does the scraping. Headless Chrome + Selenium drives the navigation, BeautifulSoup parses the rendered page, and each shop's full record gets dumped as its own `.json` file. Nothing gets flattened here. It's raw.
-2. **`consolidate_data.py`** — the ETL step. Reads every JSON file back in, flattens the nested tables into named columns (`txn_phh_regular`, `dty_rice_total`, and so on), and stitches everything into one `consolidated_fps_data.csv`.
-
-Keeping these separate means a scraping crash never costs you already-scraped data, and you can re-run the ETL step as many times as you want — tweak a column name, fix a bug in the flattening logic — without touching the browser at all.
-
 ```
 [ IMPDS Portal ]
        │
