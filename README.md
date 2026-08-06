@@ -99,8 +99,8 @@ Every JSON file looks roughly like this before it gets flattened:
 ## Running it
 
 ```bash
-git clone https://github.com/dark-devil-14/goa-fps-scraper.git
-cd goa-fps-scraper
+git clone https://github.com/dark-devil-14/impds-goa-fps-scraper
+cd impds-goa-fps-scraper
 pip install -r requirements.txt
 
 python get_raw_data.py        # scrapes shop-by-shop, resumable if it dies
@@ -119,7 +119,7 @@ goa_zones = ['NORTH GOA', 'SOUTH GOA']
 
 Change those to pull different months or add more zones later.
 
-## Before you run this: the honest flaws section
+## Before you run this: the flaws section
 
 Every scraper has rough edges. Here are mine, laid out properly instead of buried in a comment somewhere.
 
@@ -185,6 +185,8 @@ A few more things :
 - **No duplicate data ever makes it in twice** — that's a genuine strength worth calling out, not a flaw. Between the stale - DOM check on the scrape side and the file-exists skip on resume, i have structurally protected from the same shop's data landing in the dataset more than once.
   
 - **ChromeDriver version isn't pinned or auto-managed.** The script assumes a Chrome browser and matching driver are already installed and on the PATH. If Chrome auto-updates itself and your driver falls behind, you'll get a version - mismatch error at `create_driver()` with no built-in recovery for that specific case - it's a manual driver update.
+
+- **Unnamed FPS Records**: FPS entries missing a name are saved under their unique fps_id. In consolidated_fps_data.csv, the name field is left blank for these specific IDs."
   
 - Images are blocked in the headless Chrome session on purpose (`profile.managed_default_content_settings.images: 2`) — a real, speed win across hundreds of shop pages, since all the data we actually need is text and tables anyway.
 
@@ -195,4 +197,6 @@ A few more things :
 - `selenium`, `beautifulsoup4`, `pandas`
 
 --
+## Data Verfication
+- Verified the data on my side to ensure no FPS records were missing. To my surprise, it retrieved everything perfectly!!
 ![Data Validation](image-1.png)
