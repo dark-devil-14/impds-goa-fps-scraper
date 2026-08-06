@@ -193,3 +193,6 @@ A few more things :
 - Python 3.9+
 - Chrome + a matching ChromeDriver on your PATH
 - `selenium`, `beautifulsoup4`, `pandas`
+
+--
+![Data Validation](image-1.png)
