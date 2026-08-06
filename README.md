@@ -38,7 +38,7 @@ Instead of relying on standard Selenium scripts that break down after an hour, t
 
 ## Why two scripts instead of one
 
-Early on I tried scraping straight into a CSV. Terrible idea. One crash mid-write and you've got a half-written row corrupting the whole file — and the actual data (summary cards, PHH vs AAY transaction tables, commodity-wise distributed quantities) is deeply nested, which does not want to live in flat rows anyway.
+Terrible idea. One crash mid-write and you've got a half-written row corrupting the whole file — and the actual data (summary cards, PHH vs AAY transaction tables, commodity-wise distributed quantities) is deeply nested, which does not want to live in flat rows anyway.
 
 So the pipeline is split in two, deliberately:
 
@@ -113,23 +113,13 @@ Every JSON file looks roughly like this before it gets flattened:
 ## Running it
 
 ```bash
-git clone https://github.com/your-username/goa-fps-scraper.git
+git clone https://github.com/dark-devil-14/goa-fps-scraper.git
 cd goa-fps-scraper
 pip install -r requirements.txt
 
 python get_raw_data.py        # scrapes shop-by-shop, resumable if it dies
 python consolidate_data.py    # flattens everything into one CSV
 ```
-
-The months and zones being scraped are set right at the top of `get_raw_data.py`:
-
-```python
-years = [2026]
-months = [3, 4]
-goa_zones = ['NORTH GOA', 'SOUTH GOA']
-```
-
-Change those to pull different months or add more zones later.
 
 ## A couple of things worth knowing before you run it
 
@@ -145,7 +135,7 @@ Change those to pull different months or add more zones later.
 
 ## Before you run this: the honest flaws section
 
-Every scraper has rough edges. Here are ours, laid out properly instead of buried in a comment somewhere.
+Every scraper has rough edges. Here are mine, laid out properly instead of buried in a comment somewhere.
 
 ### It will take a very, very long time — and that's fine
 
@@ -178,7 +168,7 @@ Add a year, add a month, and the script builds the right URL and folder structur
 goa_zones = ['NORTH GOA', 'SOUTH GOA']
 ```
 
-If you want more districts within Goa, or a different state entirely, you can't just add a name to a list and expect it to work — you have to go find that name first. Open the IMPDS portal yourself, navigate to the state you want, and look at the actual page source for the district link's `title` or `aria-label` attribute. Whatever text sits there — copy it **exactly**, in the **same capitalisation** the site uses. The zone-matching logic looks for that string verbatim, so `"North Goa"` won't match where `"NORTH GOA"` would.
+If you want more districts within Goa, or a different state entirely, you can't just add a name to a list and expect it to work - you have to go find that name first. Open the IMPDS portal yourself, navigate to the state you want, and look at the actual page source for the district link's `title` or `aria-label` attribute. Whatever text sits there - copy it **exactly**, in the **same capitalisation** the site uses. The zone-matching logic looks for that string verbatim, so `"North Goa"` won't match where `"NORTH GOA"` would.
 
 And a step further: switching states isn't just a list edit at all. The very first click in `navigate_to_district()` is hardcoded to look for an element whose title contains `'GOA'`:
 
@@ -186,7 +176,7 @@ And a step further: switching states isn't just a list edit at all. The very fir
 "//a[contains(@title, 'GOA')] | //img[contains(@aria-label, 'GOA')]"
 ```
 
-To point this at a different state, that line itself needs editing, not just the zones list. So think of the script as "dynamic for time, hardcoded for geography" — changing *when* you scrape is a config change, changing *where* is a small code change.
+To point this at a different state, that line itself needs editing, not just the zones list. So think of the script as "dynamic for time, hardcoded for geography" - changing *when* you scrape is a config change, changing *where* is a small code change.
 
 ### The consolidator doesn't know what it doesn't know
 
@@ -196,7 +186,7 @@ To point this at a different state, that line itself needs editing, not just the
 loop_path = ["2026-03//north_goa", "2026-03//south_goa", "2026-04//north_goa", "2026-04//south_goa"]
 ```
 
-This list is hand-typed and only covers exactly four month/zone combinations. If you scrape a new month with `get_raw_data.py` — say May — that data lands correctly on disk in `data/raw/2026-05/...`, but `consolidate_data.py` has no idea it exists. It won't error, it won't warn you, it will just build the CSV from the four folders it already knows about and quietly leave May out entirely. The fix is manual: add the new `"YYYY-MM//zone_name"` entry to `loop_path` yourself before re-running the ETL step.
+This list is hand-typed and only covers exactly four month/zone combinations. If you scrape a new month with `get_raw_data.py` say May - that data lands correctly on disk in `data/raw/2026-05/...`, but `consolidate_data.py` has no idea it exists. It won't error, it won't warn you, it will just build the CSV from the four folders it already knows about and quietly leave May out entirely. The fix is manual: add the new `"YYYY-MM//zone_name"` entry to `loop_path` yourself before re-running the ETL step.
 
 ### Smaller things worth knowing about
 
