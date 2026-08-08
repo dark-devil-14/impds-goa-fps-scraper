@@ -1,11 +1,6 @@
 # Goa Fair Price Shop (FPS) Scraper & ETL Pipeline
 
-Anyone who has worked with legacy or government web portals knows the pain: dynamic AJAX calls that silently fail, memory leaks during long-running headless browser sessions, unpredictable internet drops, and DOM elements that look updated but still contain stale data from previous calls.
-
 This project is a resilient, fault-tolerant web scraping and ETL pipeline designed to scrape monthly Fair Price Shop (FPS) transaction data across Goa's districts from the Indian IMPDS portal (`impds.nic.in`).
-
-Instead of relying on standard Selenium scripts that break down after an hour, this pipeline is engineered with automatic recovery, session recycling, stale DOM protection, and a decoupled two-stage data architecture.
-
 ---
 
 ## Key Engineering Challenges & Solutions
@@ -123,21 +118,16 @@ Change those to pull different months or add more zones later.
 
 Every scraper has rough edges. Here are mine, laid out properly instead of buried in a comment somewhere.
 
-### It will take a very, very long time — and that's fine
+### It will take a very long time
 
-This isn't a five-minute script. It's fetching hundreds and hundreds of individual shop pages, one click at a time, with deliberate waits built in so it doesn't outrun a government server that wasn't built for speed. Depending on how many shops a district has, one month of one zone alone can take a good while. Multiply that across two zones and two months and you're looking at a genuinely long, multi-hour run.
+It's fetching hundreds and hundreds of individual shop pages, one click at a time, with deliberate waits built in so it doesn't outrun a government server that wasn't built for speed. Depending on how many shops a district has, one month of one zone alone can take a good while. Multiply that across two zones and two months and you're looking at a genuinely long, multi-hour run.
 
-So: start it, walk away, let it work. Don't panic if the terminal is quiet for a stretch — that's just `WebDriverWait` doing its job, not the script hanging. The one thing that actually matters on your end is a **stable internet connection** for the duration. The script tolerates *drops* gracefully (more on that below), but it can't do anything about a connection that's down for good.
-
-### It genuinely doesn't mind if you interrupt it
-
-This is the part I'm most confident about. If your Wi-Fi dies mid-run, if you hit `Ctrl+C` because you need your laptop back, if the power goes out — none of that is a disaster. Just run `python get_raw_data.py` again.
+### Auto start from where it was left behind
+if your Wi-Fi dies mid-run, if you hit `Ctrl+C` because you need your laptop back, if the power goes out — none of that is a disaster. Just run `python get_raw_data.py` again.
 
 Here's why it's safe to do that: before touching the browser for any given shop, the script already knows exactly what the output filename *would* be, and it checks whether that file already exists. If it does, that shop is skipped, no questions asked. So a re-run doesn't re-scrape anything you already have — it just picks up at the first shop that's still missing and continues from there. No duplicate files, no duplicate network calls, no wasted hours re-downloading data you already paid the time cost for once.
 
 ### It's dynamic in one way, and stubbornly hardcoded in another
-
-This trips people up, so it's worth being precise about it.
 
 **What *is* dynamic:** the month and year. Right at the top of `get_raw_data.py` you'll find:
 
@@ -164,7 +154,7 @@ And a step further: switching states isn't just a list edit at all. The very fir
 
 To point this at a different state, that line itself needs editing, not just the zones list. So think of the script as "dynamic for time, hardcoded for geography" - changing *when* you scrape is a config change, changing *where* is a small code change.
 
-### The consolidator doesn't know what it doesn't know
+### The consolidator
 
 `consolidate_data.py` has its own version of the same problem, and it's a quieter one because it fails silently rather than with an error.
 
@@ -180,11 +170,7 @@ A few more things :
 
 - **The log file is the terminal.** Every status update — successes, retries, stale DOM catches, reboots - goes to the console via `print()` and nowhere else. For a run that might last hours unattended, that means if something worth knowing happened at hour three, you'll only see it if you happened to be watching the terminal at the time, or you redirect output to a file yourself (e.g. `python get_raw_data.py > run_log.txt`).
   
-- **Shop ID and name extraction leans on regex against the sidebar link text.** It assumes the portal always formats entries as something like `"158500100001 : SHOP NAME - extra text"`. If the government ever changes that formatting even slightly, the ID or name extraction can silently produce garbage rather than erroring out, since regex failures here don't currently raise an exception.
-  
-- **No duplicate data ever makes it in twice** — that's a genuine strength worth calling out, not a flaw. Between the stale - DOM check on the scrape side and the file-exists skip on resume, i have structurally protected from the same shop's data landing in the dataset more than once.
-  
-- **ChromeDriver version isn't pinned or auto-managed.** The script assumes a Chrome browser and matching driver are already installed and on the PATH. If Chrome auto-updates itself and your driver falls behind, you'll get a version - mismatch error at `create_driver()` with no built-in recovery for that specific case - it's a manual driver update.
+- **No duplicate data ever makes it in twice**  DOM check on the scrape side and the file-exists skip on resume, i have structurally protected from the same shop's data landing in the dataset more than once.
 
 - **Unnamed FPS Records**: FPS entries missing a name are saved under their unique fps_id. In consolidated_fps_data.csv, the name field is left blank for these specific IDs."
   
